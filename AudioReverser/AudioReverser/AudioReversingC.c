@@ -12,7 +12,7 @@
 #define IF_ERR_RETURN if (err != noErr) { return err; }
 #define IF_ERR_GOTO_CLEANUP_1 if (err != noErr) { goto cleanup1; }
 #define IF_ERR_GOTO_CLEANUP_2 if (err != noErr) { goto cleanup2; }
-
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
 OSStatus convertAndReverse(CFURLRef sourceURL, CFURLRef forwardURL, CFURLRef backwardURL) {
 
@@ -99,13 +99,14 @@ cleanup1:
     AudioFileClose(forwardAudioFile);
     IF_ERR_RETURN
 
-    // read in the forward file and write its frames in reverse order
+    // open the forward file for reading
     err = AudioFileOpenURL(forwardURL,
                            kAudioFileReadPermission,
                            kAudioFileCAFType,
                            &forwardAudioFile);
     IF_ERR_RETURN
     
+    // open the backward file for writing
     AudioFileID backwardAudioFile;
     err = AudioFileCreateWithURL(backwardURL,
                                  kAudioFileCAFType,
@@ -114,42 +115,64 @@ cleanup1:
                                  &backwardAudioFile);
     IF_ERR_RETURN
     
-    // buffer just large enough for one packet (which is also one frame)
-    // (obviously, it would be more efficient to read larger buffers and
-    // reverse them in memory, prior to writing them out… takes like a minute this way!)
-    UInt8 *transferBuffer = (UInt8*) malloc(sizeof(UInt8) * format.mBytesPerPacket);
+    // prepare to read buffers of audio from the forward file
+    UInt32 transferBufferPacketCount = 0x2000;
+    UInt32 transferBufferSize = sizeof(UInt8) * format.mBytesPerPacket * transferBufferPacketCount;
+    UInt8 *transferBuffer = (UInt8*) malloc(transferBufferSize);
+    UInt8 *swapBuffer = (UInt8*) malloc(sizeof(UInt8) * format.mBytesPerPacket);
     SInt64 totalPackets = outputFilePacketPosition;
-    for (SInt64 packetsProcessed = 0; packetsProcessed < totalPackets; packetsProcessed++) {
-        UInt32 bytesToTransfer = format.mBytesPerPacket;
-        UInt32 packetsToTransfer = 1;
-        SInt64 inputPacketPosition = totalPackets - packetsProcessed - 1;
+    SInt64 packetsProcessed = 0;
+    while (packetsProcessed < totalPackets) {
+
+        // read from forward file, starting at the end of the file and moving forward
+        UInt32 bytesToTransfer = transferBufferSize;
+        UInt32 packetsToTransfer = MIN(transferBufferPacketCount, totalPackets - packetsProcessed);
+        SInt64 inputPacketPosition = totalPackets - packetsProcessed - packetsToTransfer; // - 1?
         err = AudioFileReadPacketData(forwardAudioFile,
                                       FALSE,
                                       &bytesToTransfer,
                                       NULL,
                                       inputPacketPosition,
                                       &packetsToTransfer,
-                                      &transferBuffer);
+                                      transferBuffer);
         IF_ERR_GOTO_CLEANUP_2
         
+        if (packetsToTransfer == 0) {
+            goto cleanup2;
+        }
+        
+        // swap packets inside transfer buffer
+        for (int i=0; i<packetsToTransfer/2; i++) {
+            UInt8 *swapSrc = transferBuffer + (i * format.mBytesPerPacket);
+            UInt8 *swapDst = transferBuffer + transferBufferSize - ((i+1) * format.mBytesPerPacket);
+            memcpy(swapBuffer, swapSrc, format.mBytesPerPacket);
+            memcpy(swapSrc, swapDst, format.mBytesPerPacket);
+            memcpy(swapDst, swapBuffer, format.mBytesPerPacket);
+        }
+        
+        // write reversed buffer to backward file
         err = AudioFileWritePackets(backwardAudioFile,
                                     FALSE,
                                     bytesToTransfer,
                                     NULL,
                                     packetsProcessed,
                                     &packetsToTransfer,
-                                    &transferBuffer);
+                                    transferBuffer);
         IF_ERR_GOTO_CLEANUP_2
         
         // log that we're actually working, every 1KB.
         if (packetsProcessed % 0x1000 == 0) {
             printf("processed %lld packets\n", packetsProcessed);
         }
+        
+        // increment packet count
+        packetsProcessed += packetsToTransfer;
     }
 
     
 cleanup2:
     free(transferBuffer);
+    free(swapBuffer);
     AudioFileClose(forwardAudioFile);
     AudioFileClose(backwardAudioFile);
     
