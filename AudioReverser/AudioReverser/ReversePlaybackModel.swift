@@ -9,10 +9,23 @@
 import Foundation
 import AVFoundation
 
-struct ReversePlaybackModel {
+class ReversePlaybackModel {
+
+    enum State {
+        case Loading
+        case Error
+        case Ready
+    }
     
-    var forwardURL: URL
-    var backwardURL: URL
+    var forwardURL: URL?
+    var backwardURL: URL?
+
+    var onStateChange : ((State) -> Void)?
+    var state : State = .Loading {
+        didSet {
+            onStateChange?(state)
+        }
+    }
     
     init (source: URL) {
         let tempDirURL: URL = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -21,10 +34,12 @@ struct ReversePlaybackModel {
         
         forwardURL = tempDirURL.appendingPathComponent(filenameStub + "-forward.caf")
         backwardURL = tempDirURL.appendingPathComponent(filenameStub + "-backward.caf")
-        
-        let err = convertAndReverse(source as CFURL!, forwardURL as CFURL!, backwardURL as CFURL!)
-        
-        print ("converter done, err is \(err)")
+
+        DispatchQueue.global(qos: .default).async {
+            let err = convertAndReverse(source as CFURL!, self.forwardURL as CFURL!, self.backwardURL as CFURL!)
+            print ("converter done, err is \(err)")
+            self.state = (err == noErr) ? .Ready : .Error
+        }
     }
     
 }
