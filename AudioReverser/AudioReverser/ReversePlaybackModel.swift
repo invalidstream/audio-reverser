@@ -12,16 +12,16 @@ import AVFoundation
 class ReversePlaybackModel {
 
     enum State {
-        case Loading
-        case Error
-        case Ready
+        case loading
+        case error
+        case ready
     }
     
     var forwardURL: URL?
     var backwardURL: URL?
 
     var onStateChange : ((State) -> Void)?
-    var state : State = .Loading {
+    var state : State = .loading {
         didSet {
             onStateChange?(state)
         }
@@ -38,7 +38,7 @@ class ReversePlaybackModel {
         DispatchQueue.global(qos: .default).async {
             let err = convertAndReverse(source as CFURL!, self.forwardURL as CFURL!, self.backwardURL as CFURL!)
             print ("converter done, err is \(err)")
-            self.state = (err == noErr) ? .Ready : .Error
+            self.state = (err == noErr) ? .ready : .error
         }
     }
     

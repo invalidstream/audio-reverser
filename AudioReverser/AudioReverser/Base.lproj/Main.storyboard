@@ -67,6 +67,7 @@
                             <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Pci-6J-dOQ">
                                 <rect key="frame" x="14" y="599" width="347" height="31"/>
                                 <connections>
+                                    <action selector="handleScrubberTouchDown:" destination="JEX-9P-axG" eventType="touchDown" id="hPS-KB-jl6"/>
                                     <action selector="handleScrubberValueChanged:" destination="JEX-9P-axG" eventType="valueChanged" id="2zX-l0-fet"/>
                                 </connections>
                             </slider>

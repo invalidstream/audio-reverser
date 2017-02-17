@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 class ReversedPlayerViewController: UIViewController {
 
@@ -24,15 +25,22 @@ class ReversedPlayerViewController: UIViewController {
     @IBOutlet var metadataViews: [UIView]!
     @IBOutlet var playbackControls: [UIControl]!
     
+    private var forwardPlayer: AVPlayer?
+    private var backwardPlayer: AVPlayer?
+    private var forwardTime: CMTime = kCMTimeZero
+    
     private var reversePlaybackModel : ReversePlaybackModel?
     
     var songFile : SongFile? {
         didSet {
             if let songFile = songFile {
                 reversePlaybackModel = ReversePlaybackModel(source: songFile.url)
-                reversePlaybackModel?.onStateChange = { [weak self] _ in
+                reversePlaybackModel?.onStateChange = { [weak self] state in
                     guard let strongSelf = self else { return }
                     DispatchQueue.main.async {
+                        if state == .ready {
+                            strongSelf.buildPlayers()
+                        }
                         strongSelf.updateUI()
                     }
                 }
@@ -66,7 +74,7 @@ class ReversedPlayerViewController: UIViewController {
         // TODO: handle model.state.Error
         
         // playback
-        guard let reversePlaybackModel = reversePlaybackModel, reversePlaybackModel.state == .Ready else {
+        guard let reversePlaybackModel = reversePlaybackModel, reversePlaybackModel.state == .ready else {
             for playbackControl in playbackControls {
                 playbackControl.isEnabled = false
             }
@@ -82,16 +90,97 @@ class ReversedPlayerViewController: UIViewController {
 
     }
     
+    private func buildPlayers() {
+        guard let reversePlaybackModel = reversePlaybackModel,
+            let forwardURL = reversePlaybackModel.forwardURL,
+            let backwardURL = reversePlaybackModel.backwardURL else { return }
+        
+        
+        // kill any old players
+        forwardPlayer?.pause()
+        backwardPlayer?.pause()
+        forwardTime = kCMTimeZero
+        
+        // make new players
+        forwardPlayer = AVPlayer(url: forwardURL)
+        backwardPlayer = AVPlayer(url: backwardURL)
+
+        guard let duration = forwardPlayer?.currentItem?.duration else {
+            forwardPlayer = nil
+            backwardPlayer = nil
+            return
+        }
+        forwardPlayer?.currentItem?.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
+            guard let duration = self.forwardPlayer?.currentItem?.asset.duration else { return }
+            self.scrubber.minimumValue = 0.0
+            self.scrubber.maximumValue = Float(CMTimeGetSeconds(duration))
+        }
+        
+        // observe time changes
+        forwardPlayer?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(0.25, 600), queue: nil) { [weak self] cmTime in
+            if let strongSelf = self {
+                strongSelf.forwardTime = cmTime
+                strongSelf.updateTimeLabel()
+                strongSelf.updateScrubberTime()
+            }
+        }
+        
+        backwardPlayer?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(0.25, 600), queue: nil) { [weak self]cmTime in
+            if let strongSelf = self, let duration = strongSelf.forwardPlayer?.currentItem?.duration {
+                strongSelf.forwardTime = CMTimeSubtract(duration, cmTime)
+                strongSelf.updateTimeLabel()
+                strongSelf.updateScrubberTime()
+            }
+        }
+    }
+
+    private func updateTimeLabel() {
+        let totalSeconds = CMTimeGetSeconds(forwardTime)
+//        let seconds = Int(remainder(totalSeconds, 60.0))
+//        let seconds = Int(totalSeconds % 60.0)
+        let seconds = Int(totalSeconds.truncatingRemainder(dividingBy: 60.0))
+        let minutes = Int(totalSeconds/60)
+        let secondsString = seconds < 10 ? "0\(seconds)" : "\(seconds)"
+        timeLabel.text = "\(minutes):\(secondsString)"
+    }
+    
+    private func updateScrubberTime() {
+        scrubber.value = Float(CMTimeGetSeconds(forwardTime))
+    }
     
     @IBAction func handleBackwardTapped(_ sender: Any) {
+        forwardPlayer?.rate = 0
+        let backwardTime = backwardTimeForForwardTime(forwardTime)
+        backwardPlayer?.seek(to: backwardTime)
+        backwardPlayer?.play()
     }
     
     @IBAction func handleForwardTapped(_ sender: Any) {
+        backwardPlayer?.rate = 0
+        forwardPlayer?.seek(to: forwardTime)
+        forwardPlayer?.play()
     }
     
-    @IBAction func handleScrubberValueChanged(_ sender: Any) {
+    @IBAction func handleScrubberValueChanged(_ sender: UISlider) {
+        let scrubTime = CMTimeMakeWithSeconds(Float64(sender.value), 600)
+        
+        forwardTime = scrubTime
+        forwardPlayer?.seek(to: forwardTime)
+        backwardPlayer?.seek(to: backwardTimeForForwardTime(forwardTime))
+        updateTimeLabel()
+    }
+
+    @IBAction func handleScrubberTouchDown(_ sender: Any) {
+        forwardPlayer?.pause()
+        backwardPlayer?.pause()
     }
     
+    private func backwardTimeForForwardTime(_ time: CMTime) -> CMTime {
+        guard let duration = forwardPlayer?.currentItem?.duration else { return kCMTimeZero }
+        return CMTimeSubtract(duration, time)
+    }
     
 }
+
+// TODO: custom +, -, == operator overloads for CMTime would be nice to demo
 
