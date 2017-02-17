@@ -136,8 +136,6 @@ class ReversedPlayerViewController: UIViewController {
 
     private func updateTimeLabel() {
         let totalSeconds = CMTimeGetSeconds(forwardTime)
-//        let seconds = Int(remainder(totalSeconds, 60.0))
-//        let seconds = Int(totalSeconds % 60.0)
         let seconds = Int(totalSeconds.truncatingRemainder(dividingBy: 60.0))
         let minutes = Int(totalSeconds/60)
         let secondsString = seconds < 10 ? "0\(seconds)" : "\(seconds)"
@@ -159,6 +157,11 @@ class ReversedPlayerViewController: UIViewController {
         backwardPlayer?.rate = 0
         forwardPlayer?.seek(to: forwardTime)
         forwardPlayer?.play()
+    }
+    
+    @IBAction func handlePauseTapped(_ sender: Any) {
+        forwardPlayer?.pause()
+        backwardPlayer?.pause()
     }
     
     @IBAction func handleScrubberValueChanged(_ sender: UISlider) {
