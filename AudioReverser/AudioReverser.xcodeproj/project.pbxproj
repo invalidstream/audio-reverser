@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		016636D81E5B337800E2B4B8 /* AudioReversingSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016636D71E5B337800E2B4B8 /* AudioReversingSwift.swift */; };
 		01B436701E54AE6800E29751 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B4366F1E54AE6800E29751 /* AppDelegate.swift */; };
 		01B436721E54AE6800E29751 /* SongListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B436711E54AE6800E29751 /* SongListViewController.swift */; };
 		01B436741E54AE6800E29751 /* ReversedPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B436731E54AE6800E29751 /* ReversedPlayerViewController.swift */; };
@@ -19,6 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		016636D71E5B337800E2B4B8 /* AudioReversingSwift.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioReversingSwift.swift; sourceTree = "<group>"; };
 		01B4366C1E54AE6800E29751 /* AudioReverser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AudioReverser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		01B4366F1E54AE6800E29751 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		01B436711E54AE6800E29751 /* SongListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongListViewController.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 		01B436871E54F33E00E29751 /* Reversing - Swift */ = {
 			isa = PBXGroup;
 			children = (
+				016636D71E5B337800E2B4B8 /* AudioReversingSwift.swift */,
 			);
 			name = "Reversing - Swift";
 			sourceTree = "<group>";
@@ -175,6 +178,7 @@
 				01B4368D1E54F3E700E29751 /* AudioReversingC.c in Sources */,
 				01B436721E54AE6800E29751 /* SongListViewController.swift in Sources */,
 				01B436701E54AE6800E29751 /* AppDelegate.swift in Sources */,
+				016636D81E5B337800E2B4B8 /* AudioReversingSwift.swift in Sources */,
 				01B436861E54F2D300E29751 /* ReversePlaybackModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -344,6 +348,7 @@
 				01B436821E54AE6800E29751 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

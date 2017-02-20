@@ -127,7 +127,7 @@ cleanup1:
         // read from forward file, starting at the end of the file and moving forward
         UInt32 bytesToTransfer = transferBufferSize;
         UInt32 packetsToTransfer = MIN(transferBufferPacketCount, totalPackets - packetsProcessed);
-        SInt64 inputPacketPosition = totalPackets - packetsProcessed - packetsToTransfer; // - 1?
+        SInt64 inputPacketPosition = totalPackets - packetsProcessed - packetsToTransfer;
         err = AudioFileReadPacketData(forwardAudioFile,
                                       FALSE,
                                       &bytesToTransfer,

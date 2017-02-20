@@ -9,6 +9,8 @@
 import Foundation
 import AVFoundation
 
+let USE_SWIFT_CONVERTER = true
+
 class ReversePlaybackModel {
 
     enum State {
@@ -36,7 +38,14 @@ class ReversePlaybackModel {
         backwardURL = tempDirURL.appendingPathComponent(filenameStub + "-backward.caf")
 
         DispatchQueue.global(qos: .default).async {
-            let err = convertAndReverse(source as CFURL!, self.forwardURL as CFURL!, self.backwardURL as CFURL!)
+            var err: OSStatus = noErr
+            if USE_SWIFT_CONVERTER {
+                err = convertAndReverseSwift(sourceURL: source as CFURL,
+                                             forwardURL: self.forwardURL as! CFURL,
+                                             backwardURL: self.backwardURL as! CFURL)
+            } else {
+                err = convertAndReverse(source as CFURL!, self.forwardURL as CFURL!, self.backwardURL as CFURL!)
+            }
             print ("converter done, err is \(err)")
             self.state = (err == noErr) ? .ready : .error
         }
