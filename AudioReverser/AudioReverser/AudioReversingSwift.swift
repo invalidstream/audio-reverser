@@ -33,7 +33,7 @@ func convertAndReverseSwift(sourceURL: CFURL, forwardURL: CFURL, backwardURL: CF
                                   kExtAudioFileProperty_ClientDataFormat,
                                   UInt32(MemoryLayout<AudioStreamBasicDescription>.size),
                                   &format)
-    // IF_ERR_RETURN
+    if err != noErr { return err }
     
     // open AudioFile for output
     var forwardAudioFile: AudioFileID?
@@ -42,7 +42,7 @@ func convertAndReverseSwift(sourceURL: CFURL, forwardURL: CFURL, backwardURL: CF
                                  &format,
                                  AudioFileFlags.eraseFile, // notice: have an enum for this (but not for flags in the ASBD)
                                  &forwardAudioFile)
-    // IF_ERR_RETURN
+    if err != noErr { return err }
 
     // convert to a flat file
     // kind of borrowed from my Core Audio book
@@ -66,7 +66,10 @@ func convertAndReverseSwift(sourceURL: CFURL, forwardURL: CFURL, backwardURL: CF
         err = ExtAudioFileRead(sourceExtAudioFile!,
                                &packetsPerBuffer,
                                &convertedData)
-//        IF_ERR_GOTO_CLEANUP_1
+        if err != noErr {
+            cleanup1(outputBuffer: outputBuffer, sourceExtAudioFile: sourceExtAudioFile, forwardAudioFile: forwardAudioFile)
+            return err
+        }
 
         if (frameCount == 0) {
             print("done reading file")
@@ -80,25 +83,25 @@ func convertAndReverseSwift(sourceURL: CFURL, forwardURL: CFURL, backwardURL: CF
                                         outputFilePacketPosition,
                                         &frameCount,
                                         buffer.mData!)
-//            IF_ERR_GOTO_CLEANUP_1
+            if err != noErr {
+                cleanup1(outputBuffer: outputBuffer, sourceExtAudioFile: sourceExtAudioFile, forwardAudioFile: forwardAudioFile)
+                return err
+            }
+
             outputFilePacketPosition += Int64(frameCount)
         }
         
     }
     
 //    cleanup1:
-    
-    free(outputBuffer)
-    ExtAudioFileDispose(sourceExtAudioFile!)
-    AudioFileClose(forwardAudioFile!)
-//    IF_ERR_RETURN
+    cleanup1(outputBuffer: outputBuffer, sourceExtAudioFile: sourceExtAudioFile, forwardAudioFile: forwardAudioFile)
     
     // open the forward file for reading
     err = AudioFileOpenURL(forwardURL,
                            .readPermission,
                            kAudioFileCAFType,
                            &forwardAudioFile)
-//    IF_ERR_RETURN
+    if err != noErr { return err }
 
     // open the backward file for writing
     var backwardAudioFile: AudioFileID? = nil
@@ -107,7 +110,7 @@ func convertAndReverseSwift(sourceURL: CFURL, forwardURL: CFURL, backwardURL: CF
                                  &format,
                                  .eraseFile,
                                  &backwardAudioFile)
-//    IF_ERR_RETURN
+    if err != noErr { return err }
 
     // prepare to read buffers of audio from the forward file
     let transferBufferPacketCount: UInt32  = 0x2000
@@ -129,8 +132,11 @@ func convertAndReverseSwift(sourceURL: CFURL, forwardURL: CFURL, backwardURL: CF
                                       inputPacketPosition,
                                       &packetsToTransfer,
                                       transferBuffer);
-//        IF_ERR_GOTO_CLEANUP_2
-
+        if err != noErr {
+            cleanup2(transferBuffer: transferBuffer, swapBuffer: swapBuffer, forwardAudioFile: forwardAudioFile, backwardAudioFile: backwardAudioFile)
+            return err
+        }
+        
         if packetsToTransfer == 0 {
             break
         }
@@ -152,7 +158,10 @@ func convertAndReverseSwift(sourceURL: CFURL, forwardURL: CFURL, backwardURL: CF
                                     packetsProcessed,
                                     &packetsToTransfer,
                                     transferBuffer);
-//        IF_ERR_GOTO_CLEANUP_2
+        if err != noErr {
+            cleanup2(transferBuffer: transferBuffer, swapBuffer: swapBuffer, forwardAudioFile: forwardAudioFile, backwardAudioFile: backwardAudioFile)
+            return err
+        }
 
         // log that we're actually working, every 1KB.
         if (packetsProcessed % 0x1000 == 0) {
@@ -165,11 +174,22 @@ func convertAndReverseSwift(sourceURL: CFURL, forwardURL: CFURL, backwardURL: CF
     }
     
 //    cleanup2:
-    free(transferBuffer)
-    free(swapBuffer)
-    AudioFileClose(forwardAudioFile!)
-    AudioFileClose(backwardAudioFile!)
-
+    cleanup2(transferBuffer: transferBuffer, swapBuffer: swapBuffer, forwardAudioFile: forwardAudioFile, backwardAudioFile: backwardAudioFile)
     
     return err
+}
+
+fileprivate func cleanup1(outputBuffer: UnsafeMutableRawPointer?, sourceExtAudioFile: ExtAudioFileRef?, forwardAudioFile: AudioFileID?) {
+    if let outputBuffer = outputBuffer { free(outputBuffer) }
+    if let sourceExtAudioFile = sourceExtAudioFile { ExtAudioFileDispose(sourceExtAudioFile) }
+    if let forwardAudioFile = forwardAudioFile { AudioFileClose(forwardAudioFile) }
+}
+
+fileprivate func cleanup2(transferBuffer: UnsafeMutableRawPointer?, swapBuffer: UnsafeMutableRawPointer?,
+                          forwardAudioFile: AudioFileID?, backwardAudioFile: AudioFileID?) {
+    
+    if let transferBuffer = transferBuffer { free(transferBuffer) }
+    if let swapBuffer = swapBuffer { free(swapBuffer) }
+    if let forwardAudioFile = forwardAudioFile { AudioFileClose(forwardAudioFile) }
+    if let backwardAudioFile = backwardAudioFile { AudioFileClose(backwardAudioFile) }
 }
