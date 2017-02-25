@@ -104,11 +104,6 @@ class ReversedPlayerViewController: UIViewController {
         forwardPlayer = AVPlayer(url: forwardURL)
         backwardPlayer = AVPlayer(url: backwardURL)
 
-//        guard forwardPlayer?.currentItem?.duration != nil else {
-//            forwardPlayer = nil
-//            backwardPlayer = nil
-//            return
-//        }
         forwardPlayer?.currentItem?.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
             guard let duration = self.forwardPlayer?.currentItem?.asset.duration else { return }
             DispatchQueue.main.async() {
