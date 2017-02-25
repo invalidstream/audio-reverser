@@ -51,6 +51,7 @@ class ReversedPlayerViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        forwardTime = kCMTimeZero
         updateUI()
     }
     
@@ -86,8 +87,6 @@ class ReversedPlayerViewController: UIViewController {
         }
         convertingHUDView.isHidden = true
         
-        // TODO: build players
-
     }
     
     private func buildPlayers() {
@@ -105,15 +104,19 @@ class ReversedPlayerViewController: UIViewController {
         forwardPlayer = AVPlayer(url: forwardURL)
         backwardPlayer = AVPlayer(url: backwardURL)
 
-        guard let duration = forwardPlayer?.currentItem?.duration else {
-            forwardPlayer = nil
-            backwardPlayer = nil
-            return
-        }
+//        guard forwardPlayer?.currentItem?.duration != nil else {
+//            forwardPlayer = nil
+//            backwardPlayer = nil
+//            return
+//        }
         forwardPlayer?.currentItem?.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
             guard let duration = self.forwardPlayer?.currentItem?.asset.duration else { return }
-            self.scrubber.minimumValue = 0.0
-            self.scrubber.maximumValue = Float(CMTimeGetSeconds(duration))
+            DispatchQueue.main.async() {
+                self.scrubber.minimumValue = 0.0
+                self.scrubber.maximumValue = Float(CMTimeGetSeconds(duration))
+                self.updateTimeLabel()
+                self.updateScrubberTime()
+            }
         }
         
         // observe time changes
@@ -125,8 +128,9 @@ class ReversedPlayerViewController: UIViewController {
             }
         }
         
-        backwardPlayer?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(0.25, 600), queue: nil) { [weak self]cmTime in
-            if let strongSelf = self, let duration = strongSelf.forwardPlayer?.currentItem?.duration {
+        backwardPlayer?.addPeriodicTimeObserver(forInterval: CMTimeMakeWithSeconds(0.25, 600), queue: nil) { [weak self] cmTime in
+            if let strongSelf = self, let duration = strongSelf.forwardPlayer?.currentItem?.duration,
+                let backwardPlayer = strongSelf.backwardPlayer, backwardPlayer.rate != 0 {
                 strongSelf.forwardTime = CMTimeSubtract(duration, cmTime)
                 strongSelf.updateTimeLabel()
                 strongSelf.updateScrubberTime()
