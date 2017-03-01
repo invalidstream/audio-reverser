@@ -9,7 +9,7 @@
 import Foundation
 import AVFoundation
 
-let USE_SWIFT_CONVERTER = true
+let USE_SWIFT_CONVERTER = false
 
 class ReversePlaybackModel {
 
@@ -44,7 +44,9 @@ class ReversePlaybackModel {
                                              forwardURL: self.forwardURL as! CFURL,
                                              backwardURL: self.backwardURL as! CFURL)
             } else {
-                err = convertAndReverse(source as CFURL!, self.forwardURL as CFURL!, self.backwardURL as CFURL!)
+                err = convertAndReverse(source as CFURL!,
+                                        self.forwardURL as! CFURL,
+                                        self.backwardURL as! CFURL)
             }
             print ("converter done, err is \(err)")
             self.state = (err == noErr) ? .ready : .error

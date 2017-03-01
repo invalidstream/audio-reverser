@@ -17,7 +17,12 @@ struct SongFile {
     var title: String!
     var albumArt: UIImage?
     
+    static let knownFileExtensions = ["mp3", "m4a", "aac", "mp4"]
+    
     init? (fileURL: URL) {
+        let fileExtension = fileURL.pathExtension
+        guard SongFile.knownFileExtensions.contains(fileExtension) else { return nil }
+        
         let asset = AVAsset(url: fileURL)
         
         self.url = fileURL

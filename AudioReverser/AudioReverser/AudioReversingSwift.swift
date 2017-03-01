@@ -18,15 +18,16 @@ func convertAndReverseSwift(sourceURL: CFURL, forwardURL: CFURL, backwardURL: CF
     err = ExtAudioFileOpenURL(sourceURL, &sourceExtAudioFile)
     
     // declare LPCM format we are converting to
-    var format = AudioStreamBasicDescription(mSampleRate: 44100.0,
-                                             mFormatID: kAudioFormatLinearPCM,
-                                             mFormatFlags: kAudioFormatFlagIsPacked + kAudioFormatFlagIsSignedInteger,
-                                             mBytesPerPacket: 4,
-                                             mFramesPerPacket: 1,
-                                             mBytesPerFrame: 4,
-                                             mChannelsPerFrame: 2,
-                                             mBitsPerChannel: 16,
-                                             mReserved: 0)
+    var format = AudioStreamBasicDescription(
+        mSampleRate: 44100.0,
+        mFormatID: kAudioFormatLinearPCM,
+        mFormatFlags: kAudioFormatFlagIsPacked + kAudioFormatFlagIsSignedInteger,
+        mBytesPerPacket: 4,
+        mFramesPerPacket: 1,
+        mBytesPerFrame: 4,
+        mChannelsPerFrame: 2,
+        mBitsPerChannel: 16,
+        mReserved: 0)
 
     // set format we want to receive from sourceExtAudioFile
     err = ExtAudioFileSetProperty(sourceExtAudioFile!,
@@ -192,4 +193,22 @@ fileprivate func cleanup2(transferBuffer: UnsafeMutableRawPointer?, swapBuffer: 
     if let swapBuffer = swapBuffer { free(swapBuffer) }
     if let forwardAudioFile = forwardAudioFile { AudioFileClose(forwardAudioFile) }
     if let backwardAudioFile = backwardAudioFile { AudioFileClose(backwardAudioFile) }
+}
+
+
+// experiment: could paper over the nasty C calls by creating Swift-friendly wrappers
+import AudioToolbox
+extension AudioFileID {
+    init? (url: URL, fileType: UInt32,
+           format: AudioStreamBasicDescription, flags: AudioFileFlags) {
+        var fileId : AudioFileID?
+        var format = format
+        let err = AudioFileCreateWithURL(url as CFURL,
+                                         fileType,
+                                         &format,
+                                         flags,
+                                         &fileId)
+        guard err != noErr, let createdFile = fileId else { return nil }
+        self = createdFile
+    }
 }
