@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		016636D81E5B337800E2B4B8 /* AudioReversingSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016636D71E5B337800E2B4B8 /* AudioReversingSwift.swift */; };
+		01A78A061F9D3BC300519A65 /* AudioReversingAVAudioFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A78A051F9D3BC300519A65 /* AudioReversingAVAudioFile.swift */; };
 		01B436701E54AE6800E29751 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B4366F1E54AE6800E29751 /* AppDelegate.swift */; };
 		01B436721E54AE6800E29751 /* SongListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B436711E54AE6800E29751 /* SongListViewController.swift */; };
 		01B436741E54AE6800E29751 /* ReversedPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01B436731E54AE6800E29751 /* ReversedPlayerViewController.swift */; };
@@ -21,6 +22,7 @@
 
 /* Begin PBXFileReference section */
 		016636D71E5B337800E2B4B8 /* AudioReversingSwift.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioReversingSwift.swift; sourceTree = "<group>"; };
+		01A78A051F9D3BC300519A65 /* AudioReversingAVAudioFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioReversingAVAudioFile.swift; sourceTree = "<group>"; };
 		01B4366C1E54AE6800E29751 /* AudioReverser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AudioReverser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		01B4366F1E54AE6800E29751 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		01B436711E54AE6800E29751 /* SongListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongListViewController.swift; sourceTree = "<group>"; };
@@ -32,7 +34,7 @@
 		01B436831E54B2AC00E29751 /* SongFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SongFile.swift; sourceTree = "<group>"; };
 		01B436851E54F2D300E29751 /* ReversePlaybackModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReversePlaybackModel.swift; sourceTree = "<group>"; };
 		01B4368A1E54F3E700E29751 /* AudioReverser-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AudioReverser-Bridging-Header.h"; sourceTree = "<group>"; };
-		01B4368B1E54F3E700E29751 /* AudioReversingC.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = AudioReversingC.c; sourceTree = "<group>"; };
+		01B4368B1E54F3E700E29751 /* AudioReversingC.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = AudioReversingC.c; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		01B4368C1E54F3E700E29751 /* AudioReversingC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioReversingC.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -47,6 +49,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		01A78A041F9D3B9100519A65 /* Reversing - AVAudioFile */ = {
+			isa = PBXGroup;
+			children = (
+				01A78A051F9D3BC300519A65 /* AudioReversingAVAudioFile.swift */,
+			);
+			name = "Reversing - AVAudioFile";
+			sourceTree = "<group>";
+		};
 		01B436631E54AE6800E29751 = {
 			isa = PBXGroup;
 			children = (
@@ -71,8 +81,9 @@
 				01B436831E54B2AC00E29751 /* SongFile.swift */,
 				01B436731E54AE6800E29751 /* ReversedPlayerViewController.swift */,
 				01B436851E54F2D300E29751 /* ReversePlaybackModel.swift */,
-				01B436881E54F34A00E29751 /* Reversing - C */,
-				01B436871E54F33E00E29751 /* Reversing - Swift */,
+				01B436881E54F34A00E29751 /* Reversing - Toolbox + C */,
+				01B436871E54F33E00E29751 /* Reversing - Toolbox + Swift */,
+				01A78A041F9D3B9100519A65 /* Reversing - AVAudioFile */,
 				01B436751E54AE6800E29751 /* Main.storyboard */,
 				01B436781E54AE6800E29751 /* Assets.xcassets */,
 				01B4367A1E54AE6800E29751 /* LaunchScreen.storyboard */,
@@ -81,22 +92,22 @@
 			path = AudioReverser;
 			sourceTree = "<group>";
 		};
-		01B436871E54F33E00E29751 /* Reversing - Swift */ = {
+		01B436871E54F33E00E29751 /* Reversing - Toolbox + Swift */ = {
 			isa = PBXGroup;
 			children = (
 				016636D71E5B337800E2B4B8 /* AudioReversingSwift.swift */,
 			);
-			name = "Reversing - Swift";
+			name = "Reversing - Toolbox + Swift";
 			sourceTree = "<group>";
 		};
-		01B436881E54F34A00E29751 /* Reversing - C */ = {
+		01B436881E54F34A00E29751 /* Reversing - Toolbox + C */ = {
 			isa = PBXGroup;
 			children = (
 				01B4368C1E54F3E700E29751 /* AudioReversingC.h */,
 				01B4368B1E54F3E700E29751 /* AudioReversingC.c */,
 				01B4368A1E54F3E700E29751 /* AudioReverser-Bridging-Header.h */,
 			);
-			name = "Reversing - C";
+			name = "Reversing - Toolbox + C";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -175,6 +186,7 @@
 			files = (
 				01B436841E54B2AC00E29751 /* SongFile.swift in Sources */,
 				01B436741E54AE6800E29751 /* ReversedPlayerViewController.swift in Sources */,
+				01A78A061F9D3BC300519A65 /* AudioReversingAVAudioFile.swift in Sources */,
 				01B4368D1E54F3E700E29751 /* AudioReversingC.c in Sources */,
 				01B436721E54AE6800E29751 /* SongListViewController.swift in Sources */,
 				01B436701E54AE6800E29751 /* AppDelegate.swift in Sources */,

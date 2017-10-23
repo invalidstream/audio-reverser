@@ -9,7 +9,13 @@
 import Foundation
 import AVFoundation
 
-let USE_SWIFT_CONVERTER = false
+private enum CONVERTER_OPTION {
+    case useToolboxSwift
+    case useToolboxC
+    case useAVAudioFile
+}
+
+private let converterOption: CONVERTER_OPTION = .useToolboxC
 
 class ReversePlaybackModel {
 
@@ -38,15 +44,27 @@ class ReversePlaybackModel {
         backwardURL = tempDirURL.appendingPathComponent(filenameStub + "-backward.caf")
 
         DispatchQueue.global(qos: .default).async {
+            guard let forwardURL = self.forwardURL, let backwardURL = self.backwardURL
+                else { return }
             var err: OSStatus = noErr
-            if USE_SWIFT_CONVERTER {
+            switch converterOption {
+            case .useToolboxSwift:
                 err = convertAndReverseSwift(sourceURL: source as CFURL,
-                                             forwardURL: self.forwardURL as! CFURL,
-                                             backwardURL: self.backwardURL as! CFURL)
-            } else {
-                err = convertAndReverse(source as CFURL!,
-                                        self.forwardURL as! CFURL,
-                                        self.backwardURL as! CFURL)
+                                             forwardURL: forwardURL as CFURL,
+                                             backwardURL: backwardURL as CFURL)
+            case .useToolboxC:
+                err = convertAndReverse(source as CFURL,
+                                        forwardURL as CFURL,
+                                        backwardURL as CFURL)
+            case .useAVAudioFile:
+                do {
+                    try convertAndReverseAVAudioFile(sourceURL: source as CFURL,
+                                                     forwardURL: forwardURL as CFURL,
+                                                     backwardURL: backwardURL as CFURL)
+                } catch {
+                    print ("convertAndReverseAVAudioFile failed: \(error)")
+                    err = -99999
+                }
             }
             print ("converter done, err is \(err)")
             self.state = (err == noErr) ? .ready : .error
